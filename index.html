@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ROOM 0 // ARCHIVE</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#060608;--surface:#0e0e12;--surface2:#16161c;
+  --border:#1e1e28;--text:#d4d4dc;--dim:#555566;
+  --accent:#00e87b;--accent-dim:rgba(0,232,123,0.12);
+  --accent-glow:rgba(0,232,123,0.25);
+  --danger:#ff3b5c;--warn:#ffaa2e;
+  --mono:'JetBrains Mono',monospace;--sans:'Noto Sans SC',-apple-system,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
+.screen{display:none;min-height:100vh;min-height:100dvh;padding:28px 20px 40px;max-width:440px;margin:0 auto;flex-direction:column;position:relative;z-index:1}
+.screen.active{display:flex;animation:fadeIn .5s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 var(--accent-dim)}50%{box-shadow:0 0 0 6px transparent}}
+@keyframes glitch{0%,100%{text-shadow:none;transform:translate(0)}2%{text-shadow:-2px 0 var(--danger),2px 0 var(--accent);transform:translate(-1px,1px)}4%{text-shadow:2px 0 var(--danger),-2px 0 var(--accent);transform:translate(1px,-1px)}6%{text-shadow:none;transform:translate(0)}}
+@keyframes revealGlow{0%{box-shadow:0 0 0 0 var(--accent-glow)}50%{box-shadow:0 0 20px 4px var(--accent-glow)}100%{box-shadow:0 0 8px 2px var(--accent-dim)}}
+@keyframes confettiDrop{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(900deg);opacity:0}}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+.dots{display:flex;gap:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--border);transition:all .3s}
+.dot.done{background:var(--accent);box-shadow:0 0 6px var(--accent-dim)}
+.dot.now{border:1.5px solid var(--accent);background:transparent;animation:pulse 2s infinite}
+.step-label{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:2px}
+.tag{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;opacity:.8;margin-bottom:10px}
+.desc{font-size:14px;line-height:1.9;color:var(--text);font-weight:300;margin-bottom:18px}
+
+.solved{display:none;font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--accent);margin-top:14px;padding:12px 14px;border-left:2px solid var(--accent);background:var(--accent-dim);animation:slideUp .4s ease}
+.solved.show{display:block}
+.solved b{color:var(--text)}
+.btn-next{font-family:var(--mono);font-size:11px;letter-spacing:2px;background:transparent;color:var(--accent);border:1px solid var(--accent);padding:12px 28px;cursor:pointer;margin-top:18px;align-self:flex-end;text-transform:uppercase;transition:all .2s;display:none}
+.btn-next:hover{background:var(--accent);color:var(--bg)}
+.input-row{display:flex;gap:8px;align-items:center}
+.text-input{flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:18px;padding:12px;letter-spacing:4px;text-align:center;outline:none;text-transform:uppercase}
+.text-input:focus{border-color:var(--accent)}
+.btn-sm{font-family:var(--mono);font-size:11px;background:transparent;color:var(--accent);border:1px solid var(--accent);padding:12px 16px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-sm:hover{background:var(--accent);color:var(--bg)}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:13px;padding:12px 16px;text-align:left;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px}
+.opt:hover{border-color:#333340;background:var(--surface2)}
+.opt .key{font-family:var(--mono);font-size:10px;color:var(--dim);min-width:18px}
+.opt.correct{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+.opt.wrong{border-color:var(--danger);background:rgba(255,59,92,.08);color:var(--danger);animation:shake .35s ease}
+.opt.off{pointer-events:none;opacity:.4}
+
+.hint-btn{font-family:var(--mono);font-size:10px;color:var(--dim);background:transparent;border:1px solid var(--border);padding:6px 14px;cursor:pointer;transition:all .2s;margin-bottom:14px;align-self:flex-start}
+.hint-btn:hover{border-color:var(--dim);color:var(--text)}
+.hint-text{font-size:11.5px;color:var(--dim);padding-left:12px;border-left:2px solid var(--border);margin-bottom:14px;line-height:1.7;display:none;animation:slideUp .3s ease}
+.hint-text.show{display:block}
+
+/* INTRO */
+.intro{justify-content:center;align-items:center;text-align:center;gap:28px}
+.intro-label{font-family:var(--mono);font-size:10px;letter-spacing:6px;color:var(--dim);text-transform:uppercase}
+.intro-title{font-family:var(--mono);font-size:56px;font-weight:700;color:var(--text);line-height:1;animation:glitch 4s infinite}
+.intro-sub{font-size:13px;color:var(--dim);font-weight:300;line-height:2;max-width:240px;letter-spacing:.5px}
+.intro-sub span{color:var(--accent)}
+.btn-main{font-family:var(--mono);font-size:12px;letter-spacing:3px;text-transform:uppercase;background:transparent;color:var(--accent);border:1px solid var(--accent);padding:13px 36px;cursor:pointer;transition:all .25s}
+.btn-main:hover{background:var(--accent);color:var(--bg)}
+
+/* P1 cipher table */
+.cipher-table{background:var(--surface);border:1px solid var(--border);padding:14px;margin-bottom:14px}
+.cipher-table-title{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:2px;margin-bottom:10px;text-transform:uppercase}
+.crow{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:13px}
+.crow:last-child{border-bottom:none}
+.cnums{color:var(--text);letter-spacing:2px}
+.carrow{color:var(--dim);font-size:11px}
+.cresult{color:var(--accent);font-weight:600;font-size:15px}
+.cquestion{background:var(--surface);border:1px dashed var(--accent);padding:14px;text-align:center;margin-bottom:14px}
+.cq-label{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:2px;margin-bottom:8px}
+.cq-nums{font-family:var(--mono);font-size:20px;color:var(--warn);letter-spacing:4px}
+
+.alpha-ref{background:var(--surface);border:1px solid var(--border);padding:10px;margin-bottom:14px;display:none;flex-wrap:wrap;gap:2px;justify-content:center;animation:slideUp .4s ease}
+.alpha-ref.show{display:flex}
+.aitem{font-family:var(--mono);font-size:9px;color:var(--dim);width:28px;text-align:center;line-height:1.6}
+.aitem span{color:var(--text);font-size:10px;display:block}
+
+.term-panel{background:var(--surface);border:1px solid var(--border);padding:14px;margin-bottom:14px}
+.term-title{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:2px;margin-bottom:10px;text-transform:uppercase}
+.term-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:15px;letter-spacing:2px}
+.term-row:last-child{border-bottom:none}
+.term-word{color:var(--text)}
+.term-status{font-size:10px;color:var(--dim)}
+.term-word .hole{color:var(--warn);padding:0 1px}
+.term-question{background:var(--surface);border:1px dashed var(--accent);padding:14px;margin-bottom:14px;text-align:center}
+.term-opts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.term-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:10px 16px;cursor:pointer;transition:all .2s}
+.term-btn:hover{border-color:#333340}
+.term-btn.correct{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+.term-btn.wrong{border-color:var(--danger);background:rgba(255,59,92,.08);color:var(--danger);animation:shake .35s ease}
+.term-btn.off{pointer-events:none;opacity:.35}
+
+/* P2: image-based encoding - 3x3 grid with symbols */
+.p2-grid-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+.p2-card{background:var(--surface);border:1px solid var(--border);padding:10px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.p2-card .p2-label{font-family:var(--mono);font-size:14px;color:var(--accent);background:var(--accent-dim);padding:1px 8px}
+.p2-grid{display:grid;grid-template-columns:repeat(3,1fr);width:72px;height:72px;border:1px solid var(--dim)}
+.p2-cell{display:flex;align-items:center;justify-content:center;border:0.5px solid var(--border);font-size:14px}
+.p2-cell.filled{background:var(--accent);opacity:0.85}
+.p2-cell.empty{background:transparent}
+
+.p2-question-card{background:transparent;border:1px dashed var(--accent);padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.p2-grid.large{width:96px;height:96px}
+
+/* P3: visual sequence */
+.p3-seq{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
+.p3-frame{background:var(--surface);border:1px solid var(--border);padding:6px;text-align:center}
+.p3-frame svg{display:block}
+.p3-arrow{font-family:var(--mono);font-size:14px;color:var(--dim)}
+.p3-eq{font-family:var(--mono);font-size:16px;color:var(--dim);margin:0 2px}
+.p3-result{font-family:var(--mono);font-size:18px;color:var(--accent);font-weight:600}
+
+.circuit-box{background:var(--surface);border:1px solid var(--border);padding:16px;margin-bottom:14px}
+.circuit-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--dim);text-transform:uppercase}
+.circuit-wrap{display:flex;align-items:center;justify-content:center;gap:10px}
+.circuit-port{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);position:relative}
+.circuit-port.on{border-color:var(--accent);box-shadow:0 0 10px var(--accent-dim)}
+.circuit-grid{display:grid;grid-template-columns:repeat(2,72px);gap:10px}
+.circuit-tile{width:72px;height:72px;background:var(--surface2);border:1px solid var(--border);position:relative;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s}
+.circuit-tile.active{border-color:var(--accent);box-shadow:0 0 10px var(--accent-dim)}
+.circuit-tile::before,.circuit-tile::after{content:'';position:absolute;background:var(--dim);transition:background .2s}
+.circuit-tile.active::before,.circuit-tile.active::after{background:var(--accent)}
+.circuit-tile.straight::before{width:8px;height:100%;left:50%;top:0;transform:translateX(-50%)}
+.circuit-tile.straight::after{display:none}
+.circuit-tile.elbow::before{width:8px;height:50%;left:50%;top:0;transform:translateX(-50%)}
+.circuit-tile.elbow::after{height:8px;width:50%;left:50%;top:50%;transform:translateY(-50%)}
+.circuit-tile.r0{transform:rotate(0deg)}
+.circuit-tile.r1{transform:rotate(90deg)}
+.circuit-tile.r2{transform:rotate(180deg)}
+.circuit-tile.r3{transform:rotate(270deg)}
+.circuit-tile .core{position:absolute;inset:24px;border-radius:50%;border:2px solid currentColor;color:var(--border)}
+.circuit-tile.active .core{color:var(--accent)}
+.circuit-note{font-size:11.5px;line-height:1.8;color:var(--dim);margin-top:14px}
+
+.node-panel{background:var(--surface);border:1px solid var(--border);padding:14px;margin-bottom:14px}
+.node-title{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:2px;margin-bottom:10px;text-transform:uppercase}
+.node-example{padding:10px 0;border-bottom:1px solid var(--border)}
+.node-example:last-child{border-bottom:none}
+.node-lights,.node-bank{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.node-light,.node-toggle{width:46px;height:46px;border-radius:10px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:14px;background:var(--surface2);color:var(--dim)}
+.node-light.on,.node-toggle.on{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);box-shadow:0 0 12px var(--accent-dim)}
+.node-plus,.node-eq{font-family:var(--mono);color:var(--dim);font-size:14px}
+.node-example-top{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px}
+.node-result{font-family:var(--mono);font-size:17px;color:var(--text);text-align:center}
+.node-toggle{cursor:pointer;transition:all .2s}
+.node-toggle:hover{border-color:#333340}
+
+/* P4: number grid encoding */
+.p4-examples{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+.p4-ex{display:flex;flex-direction:column;align-items:center;gap:6px}
+.p4-ex .p4-lbl{font-family:var(--mono);font-size:15px;color:var(--accent)}
+.p4-numgrid{display:grid;grid-template-columns:repeat(3,1fr);width:66px;height:66px}
+.p4-numcell{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--dim);border:0.5px solid var(--border)}
+.p4-numcell.on{background:var(--accent);color:var(--bg);font-weight:600;border-color:var(--accent)}
+
+.p4-question{display:flex;gap:6px;justify-content:center;align-items:center;margin-bottom:14px}
+.p4-sep{font-family:var(--mono);color:var(--dim);font-size:16px}
+
+/* P5: pattern matching */
+.p5-table{background:var(--surface);border:1px solid var(--border);padding:14px;margin-bottom:14px}
+.p5-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:13px}
+.p5-row:last-child{border-bottom:none}
+.p5-word{color:var(--text);min-width:80px}
+.p5-arrow{color:var(--dim);font-size:11px}
+.p5-letter{color:var(--accent);font-weight:600;font-size:15px}
+
+.patch-panel{background:var(--surface);border:1px solid var(--border);padding:14px;margin-bottom:14px}
+.patch-row{padding:12px 0;border-bottom:1px solid var(--border)}
+.patch-row:last-child{border-bottom:none}
+.patch-label{font-family:var(--mono);font-size:18px;letter-spacing:2px;color:var(--text);margin-bottom:10px}
+.patch-opts{display:flex;gap:8px;flex-wrap:wrap}
+.patch-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:10px 12px;cursor:pointer;transition:all .2s}
+.patch-btn:hover{border-color:#333340}
+.patch-btn.correct{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+.patch-btn.wrong{border-color:var(--danger);background:rgba(255,59,92,.08);color:var(--danger);animation:shake .35s ease}
+.patch-btn.off{pointer-events:none;opacity:.35}
+
+/* CODE / FINAL */
+.code-scr{justify-content:center;align-items:center;text-align:center;gap:24px}
+.code-label{font-family:var(--mono);font-size:10px;letter-spacing:4px;color:var(--dim);text-transform:uppercase}
+.frags{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.frag{padding:10px 14px;background:var(--surface);border:1px solid var(--border);font-family:var(--mono);font-size:17px;color:var(--dim);transition:all .5s;min-width:40px;text-align:center}
+.frag.revealed{color:var(--accent);border-color:var(--accent);animation:revealGlow 1s ease forwards}
+.assembled{font-family:var(--mono);font-size:20px;letter-spacing:4px;color:var(--accent);padding:14px 0;display:none}
+.code-sub{font-size:12px;color:var(--dim);font-weight:300;transition:all .3s}
+.btn-big{font-family:var(--mono);font-size:13px;letter-spacing:4px;background:var(--accent);color:var(--bg);border:none;padding:14px 40px;cursor:pointer;text-transform:uppercase;font-weight:600;transition:all .3s}
+.btn-big:hover{box-shadow:0 0 28px var(--accent-glow)}
+.final{justify-content:center;align-items:center;text-align:center;gap:20px}
+.final-icon{font-size:44px;animation:slideUp .5s ease}
+.final-title{font-family:var(--mono);font-size:10px;font-weight:400;color:var(--dim);animation:slideUp .5s ease .05s both;letter-spacing:4px;text-transform:uppercase}
+.final-bday-cn{font-size:28px;line-height:1.4;color:var(--text);font-weight:500;letter-spacing:2px;opacity:0;animation:fadeInText .9s ease .3s forwards}
+.final-bday-en{font-family:var(--mono);font-size:18px;line-height:1.6;color:var(--accent);letter-spacing:4px;text-transform:uppercase;opacity:0;animation:fadeInText .9s ease .75s forwards}
+.final-msg{display:none}
+.final-date{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:6px;opacity:0;animation:fadeInText .9s ease 1.45s forwards}
+.confetti{position:fixed;top:-10px;z-index:999;animation:confettiDrop linear forwards}
+.firework{position:fixed;width:10px;height:10px;border-radius:2px;pointer-events:none;z-index:998;background:currentColor;box-shadow:0 0 16px 4px currentColor,0 0 36px 12px color-mix(in srgb,currentColor 60%, transparent);filter:drop-shadow(0 0 12px currentColor);animation:fireworkBurst 1.45s cubic-bezier(.18,.72,.23,.99) forwards}
+.firework::before,.firework::after{content:'';position:absolute;left:50%;top:50%;width:2px;height:2px;background:currentColor;transform:translate(-50%,-50%);box-shadow:0 -58px 0 0 currentColor,18px -54px 0 0 currentColor,38px -38px 0 0 currentColor,54px -18px 0 0 currentColor,58px 0 0 0 currentColor,54px 18px 0 0 currentColor,38px 38px 0 0 currentColor,18px 54px 0 0 currentColor,0 58px 0 0 currentColor,-18px 54px 0 0 currentColor,-38px 38px 0 0 currentColor,-54px 18px 0 0 currentColor,-58px 0 0 0 currentColor,-54px -18px 0 0 currentColor,-38px -38px 0 0 currentColor,-18px -54px 0 0 currentColor;opacity:.92}
+.firework::before{width:3px;height:64px;border-radius:999px;box-shadow:none;transform:translate(-50%,-50%) rotate(0deg);opacity:.22}
+.firework::after{width:64px;height:3px;border-radius:999px;box-shadow:none;transform:translate(-50%,-50%) rotate(0deg);opacity:.22}
+@keyframes fadeInText{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fireworkBurst{0%{transform:scale(.12) rotate(0deg);opacity:0}12%{transform:scale(.36) rotate(8deg);opacity:1}55%{transform:scale(1.05) rotate(24deg);opacity:1}100%{transform:scale(1.55) rotate(40deg);opacity:0;box-shadow:0 0 10px 2px currentColor,0 0 28px 10px color-mix(in srgb,currentColor 45%, transparent)}}
+</style>
+</head>
+<body>
+
+<!-- ========== INTRO ========== -->
+<div class="screen intro active" id="s-intro">
+  <div class="intro-label">你被困在了</div>
+  <div class="intro-title">ROOM 0</div>
+  <div class="intro-sub">解开 <span>5</span> 个模块<br>恢复一份被隐藏的档案<br>你大概会比系统更早猜到它是什么</div>
+  <button class="btn-main" onclick="go('s-p1')">进 入</button>
+</div>
+
+<!-- ========== P1: X — a+b-c cipher ========== -->
+<div class="screen" id="s-p1">
+  <div class="topbar">
+    <div class="dots"><div class="dot now"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    <div class="step-label">01 / 05</div>
+  </div>
+  <div class="tag">// 模块 01 / LOG</div>
+  <div class="desc">日志模块恢复出一段被压缩的旧记录。<br>每组三个数字对应一个字母。<br>系统角落反复残留着同一个编号：<b>04</b>。先把最后一行译出来。</div>
+
+  <div class="cipher-table">
+    <div class="cipher-table-title">已破译记录</div>
+    <div class="crow"><span class="cnums">15 · 3 · 12</span><span class="carrow">→</span><span class="cresult">F</span></div>
+    <div class="crow"><span class="cnums">8 · 14 · 9</span><span class="carrow">→</span><span class="cresult">M</span></div>
+    <div class="crow"><span class="cnums">20 · 7 · 8</span><span class="carrow">→</span><span class="cresult">S</span></div>
+    <div class="crow"><span class="cnums">11 · 6 · 14</span><span class="carrow">→</span><span class="cresult">C</span></div>
+  </div>
+
+  <button class="hint-btn" onclick="showHint('h1a')">需要提示？</button>
+  <div class="hint-text" id="h1a">字母表位置：F=6, M=13, S=19, C=3 <br><button class="hint-btn" style="margin-top:8px" onclick="showHint('h1b')">还需要？</button></div>
+  <div class="hint-text" id="h1b">试试对三个数字做加减运算</div>
+
+  <!-- delayed alpha table - appears after 45 seconds -->
+  <div class="alpha-ref" id="alpha-table">
+    <div class="aitem"><span>A</span>1</div><div class="aitem"><span>B</span>2</div>
+    <div class="aitem"><span>C</span>3</div><div class="aitem"><span>D</span>4</div>
+    <div class="aitem"><span>E</span>5</div><div class="aitem"><span>F</span>6</div>
+    <div class="aitem"><span>G</span>7</div><div class="aitem"><span>H</span>8</div>
+    <div class="aitem"><span>I</span>9</div><div class="aitem"><span>J</span>10</div>
+    <div class="aitem"><span>K</span>11</div><div class="aitem"><span>L</span>12</div>
+    <div class="aitem"><span>M</span>13</div><div class="aitem"><span>N</span>14</div>
+    <div class="aitem"><span>O</span>15</div><div class="aitem"><span>P</span>16</div>
+    <div class="aitem"><span>Q</span>17</div><div class="aitem"><span>R</span>18</div>
+    <div class="aitem"><span>S</span>19</div><div class="aitem"><span>T</span>20</div>
+    <div class="aitem"><span>U</span>21</div><div class="aitem"><span>V</span>22</div>
+    <div class="aitem"><span>W</span>23</div><div class="aitem"><span>X</span>24</div>
+    <div class="aitem"><span>Y</span>25</div><div class="aitem"><span>Z</span>26</div>
+  </div>
+
+  <div class="cquestion">
+    <div class="cq-label">log fragment</div>
+    <div class="cq-nums">17 · 12 · 5</div>
+  </div>
+
+  <div class="input-row">
+    <input class="text-input" id="p1-input" maxlength="1" placeholder="_" oninput="this.value=this.value.toUpperCase()">
+    <button class="btn-sm" onclick="checkP1()">破译</button>
+  </div>
+  <div class="solved" id="sv1">> 碎片解锁：<b>[ X ]</b><br>> 日志片段已译出：<b>X</b><br>> 运算规则：a + b - c = 字母位置<br>> 系统残留编号仍停在：<b>04</b></div>
+  <button class="btn-next" id="nx1" onclick="go('s-p4')">继续 →</button>
+</div>
+
+<!-- ========== P2: T — display column readout ========== -->
+<div class="screen" id="s-p2">
+  <div class="topbar">
+    <div class="dots"><div class="dot done"></div><div class="dot done"></div><div class="dot now"></div><div class="dot"></div><div class="dot"></div></div>
+    <div class="step-label">03 / 05</div>
+  </div>
+  <div class="tag">// 模块 02 / DISPLAY</div>
+  <div class="desc">显示模块恢复后，只剩下几组列读数。<br>每组数字记录的是字符每一列被点亮了多少格。<br>根据样本判断最后一组对应哪个字母；屏幕角落的版本号依旧停在 <b>v0.4</b>。</div>
+
+  <div class="term-panel">
+    <div class="term-title">display samples</div>
+    <div class="term-row"><span class="term-word">3 · 1 · 3</span><span class="term-status">→ U</span></div>
+    <div class="term-row"><span class="term-word">3 · 3 · 2</span><span class="term-status">→ E</span></div>
+    <div class="term-row"><span class="term-word">1 · 1 · 3</span><span class="term-status">→ J</span></div>
+  </div>
+
+  <button class="hint-btn" onclick="showHint('h2')">需要提示？</button>
+  <div class="hint-text" id="h2">把字母想成 3×3 的像素字形。每组数字表示：第一列亮了几格、第二列亮了几格、第三列亮了几格。</div>
+
+  <div class="term-question">
+    <div class="cq-label" style="margin-bottom:10px;">display recovery</div>
+    <div class="term-row" style="justify-content:center;border-bottom:none;padding:0 0 12px;">
+      <span class="term-word" style="font-size:24px;letter-spacing:6px;">1 · 3 · 1</span>
+    </div>
+    <div class="term-opts" id="p2-opts">
+      <button class="term-btn" onclick="pickP2('I',false,this)">I</button>
+      <button class="term-btn" onclick="pickP2('T',true,this)">T</button>
+      <button class="term-btn" onclick="pickP2('L',false,this)">L</button>
+    </div>
+  </div>
+
+  <div class="solved" id="sv2">> 碎片解锁：<b>[ T ]</b><br>> 样本规则：数字表示三列各自点亮的格数<br>> 1 · 3 · 1 对应顶行全亮、中心列贯通的字形<br>> 恢复字符：<b>T</b><br>> 版本号没有变化：<b>04</b></div>
+  <button class="btn-next" id="nx2" onclick="go('s-p3')">继续 →</button>
+</div>
+
+<!-- ========== P3: 04 — Node activation ========== -->
+<div class="screen" id="s-p3">
+  <div class="topbar">
+    <div class="dots"><div class="dot done"></div><div class="dot done"></div><div class="dot done"></div><div class="dot now"></div><div class="dot"></div></div>
+    <div class="step-label">04 / 05</div>
+  </div>
+  <div class="tag">// 模块 03 / NODE</div>
+  <div class="desc">节点测试开始回传样本。<br>每个亮起的节点都有固定权重；样本说明了它们如何组合成结果。<br>先锁定各节点的数值，再回答最后一个组合问题。</div>
+
+  <div class="node-panel" id="p3-panel">
+    <div class="node-title">node samples</div>
+
+    <div class="node-example">
+      <div class="node-example-top">
+        <div class="node-light on">A</div>
+        <div class="node-plus">+</div>
+        <div class="node-light on">B</div>
+        <div class="node-eq">=</div>
+        <div class="node-result">03</div>
+      </div>
+    </div>
+
+    <div class="node-example">
+      <div class="node-example-top">
+        <div class="node-light on">A</div>
+        <div class="node-plus">+</div>
+        <div class="node-light on">C</div>
+        <div class="node-eq">=</div>
+        <div class="node-result">05</div>
+      </div>
+    </div>
+
+    <div class="node-example">
+      <div class="node-example-top">
+        <div class="node-light on">B</div>
+        <div class="node-plus">+</div>
+        <div class="node-light on">D</div>
+        <div class="node-eq">=</div>
+        <div class="node-result">05</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="hint-btn" onclick="showHint('h3')">需要提示？</button>
+  <div class="hint-text" id="h3">先从样本推出四个节点各自的数值，再计算最后那一组。</div>
+
+  <div class="cquestion">
+    <div class="cq-label">final query</div>
+    <div class="node-example-top" style="margin:6px 0 12px;">
+      <div class="node-light on">A</div>
+      <div class="node-plus">+</div>
+      <div class="node-light on">D</div>
+      <div class="node-eq">=</div>
+      <div class="node-result">?</div>
+    </div>
+  </div>
+
+  <div class="input-row">
+    <input class="text-input" id="p3-input" maxlength="2" placeholder="__" style="letter-spacing:8px;">
+    <button class="btn-sm" onclick="checkP3Nodes()">提交</button>
+  </div>
+  <div class="solved" id="sv3">> 碎片解锁：<b>[ 04 ]</b><br>> 节点权重已锁定：A=1, B=2, C=4, D=3<br>> A + D = <b>04</b></div>
+  <button class="btn-next" id="nx3" onclick="go('s-p5')">继续 →</button>
+</div>
+
+<!-- ========== P4: 17 — 3x3 grid digit encoding ==========
+  Rule: In a 3x3 grid, cells are on/off. The ON cells correspond to 
+  positions on a phone keypad (1-9), and you SUM them.
+  
+  Grid positions = phone keypad:
+  1 2 3
+  4 5 6
+  7 8 9
+  
+  Example: cells 2,3,5 are ON → 2+3+5 = 10
+  Example: cells 1,3,7,9 are ON → 1+3+7+9 = 20
+  
+  This is similar to reference image 3!
+  
+  Examples:
+  Grid with cells {1,4} on → 1+4 = 5
+  Grid with cells {2,6,8} on → 2+6+8 = 16
+  Grid with cells {3,5,9} on → 3+5+9 = 17... too obvious if shown directly.
+  
+  Better: show as two-digit number, each digit encoded separately.
+  "1" encoded as: only cell 1 is on (sum=1)
+  "7" encoded as: cells 3,4 on (sum=7) or cells 1,6 on (sum=7), etc.
+  
+  Actually, let me make it simpler and more like ref image 3:
+  The shape formed by ON cells in the grid, when overlaid on a phone keypad,
+  tells you which keys to press. The displayed number = those keys combined.
+  
+  But that's just "read the positions". Let me add a twist:
+  
+  Actually, for ref image 3, the BORDERS of the grid encode the shape of 
+  the digit (like an LCD). Let me do that:
+  
+  Rule: The lit cells in a 3x3 grid form the SHAPE of a digit, 
+  like pixel art for numbers. Same concept as P2 (pixel letters) but for digits.
+  But that's too similar to P2.
+  
+  Different approach: Each 3x3 grid has some cells with numbers in them (1-9).
+  The rule is: MULTIPLY the numbers in filled cells.
+  
+  Nah, this is getting complicated. Let me go with the phone keypad sum approach - 
+  it's similar to reference image 3 and has a genuine "aha" when she realizes
+  the grid positions map to keypad numbers.
+  
+  Examples (show 3 known pairs):
+  Grid A: cells at positions (1,1), (2,1), (3,1) lit = left column
+  Keypad values: 1, 4, 7 → sum = 12. Grid A = 12.
+  
+  Grid B: cells at (1,3), (2,2) lit
+  Keypad: 3, 5 → sum = 8. Grid B = 8.
+  
+  Grid C: cells at (1,1), (1,2), (2,2) lit
+  Keypad: 1, 2, 5 → sum = 8. Hmm same as B.
+  
+  Let me pick better:
+  Grid A: {(1,2), (2,1), (2,3)} = keypad 2,4,6 → sum=12 → "12"
+  Grid B: {(1,1), (2,3), (3,1)} = keypad 1,6,7 → sum=14 → "14"  
+  Grid C: {(2,2), (3,3)} = keypad 5,9 → sum=14... same
+  
+  Let me just pick:
+  Grid A: {(1,1), (1,3)} = keypad 1,3 → 4
+  Grid B: {(2,1), (2,2), (2,3)} = keypad 4,5,6 → 15
+  Grid C: {(3,1), (1,2)} = keypad 7,2 → 9
+  Question: {(1,2), (2,1), (3,2), (1,3)} = keypad 2,4,8,3 → 17 ✓
+-->
+<div class="screen" id="s-p4">
+  <div class="topbar">
+    <div class="dots"><div class="dot done"></div><div class="dot now"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    <div class="step-label">02 / 05</div>
+  </div>
+  <div class="tag">// 模块 04 / ROUTE</div>
+  <div class="desc">路由矩阵开始亮起。<br>每组亮点都对应一个目标编号。<br>先用前三组样本校准规则，再锁定最后一组的目标值。</div>
+
+  <div class="p4-examples">
+    <!-- Grid A: positions (0,0) and (0,2) lit = keypad 1,3 → 4 -->
+    <div class="p4-ex">
+      <div class="p4-numgrid">
+        <div class="p4-numcell on"></div><div class="p4-numcell"></div><div class="p4-numcell on"></div>
+        <div class="p4-numcell"></div><div class="p4-numcell"></div><div class="p4-numcell"></div>
+        <div class="p4-numcell"></div><div class="p4-numcell"></div><div class="p4-numcell"></div>
+      </div>
+      <div class="p4-lbl">= 4</div>
+    </div>
+    <!-- Grid B: positions (1,0),(1,1),(1,2) lit = keypad 4,5,6 → 15 -->
+    <div class="p4-ex">
+      <div class="p4-numgrid">
+        <div class="p4-numcell"></div><div class="p4-numcell"></div><div class="p4-numcell"></div>
+        <div class="p4-numcell on"></div><div class="p4-numcell on"></div><div class="p4-numcell on"></div>
+        <div class="p4-numcell"></div><div class="p4-numcell"></div><div class="p4-numcell"></div>
+      </div>
+      <div class="p4-lbl">= 15</div>
+    </div>
+    <!-- Grid C: positions (2,0),(0,1) lit = keypad 7,2 → 9 -->
+    <div class="p4-ex">
+      <div class="p4-numgrid">
+        <div class="p4-numcell"></div><div class="p4-numcell on"></div><div class="p4-numcell"></div>
+        <div class="p4-numcell"></div><div class="p4-numcell"></div><div class="p4-numcell"></div>
+        <div class="p4-numcell on"></div><div class="p4-numcell"></div><div class="p4-numcell"></div>
+      </div>
+      <div class="p4-lbl">= 9</div>
+    </div>
+  </div>
+
+  <button class="hint-btn" onclick="showHint('h4')">需要提示？</button>
+  <div class="hint-text" id="h4">把矩阵当成一张九宫格键盘的俯视图。亮起的位置不是图案本身，而是被选中的键位。</div>
+
+  <div class="cquestion">
+    <div class="cq-label">target route</div>
+    <!-- Question: positions (0,1),(1,0),(2,1),(0,2) = keypad 2,4,8,3 → 17 -->
+    <div style="display:flex;justify-content:center;padding:8px 0;">
+      <div class="p4-numgrid" style="width:80px;height:80px;">
+        <div class="p4-numcell"></div><div class="p4-numcell on"></div><div class="p4-numcell on"></div>
+        <div class="p4-numcell on"></div><div class="p4-numcell"></div><div class="p4-numcell"></div>
+        <div class="p4-numcell"></div><div class="p4-numcell on"></div><div class="p4-numcell"></div>
+      </div>
+    </div>
+    <div style="font-family:var(--mono);font-size:18px;color:var(--warn);margin-top:4px;">target id = ?</div>
+  </div>
+
+  <div class="input-row">
+    <input class="text-input" id="p4-input" maxlength="2" placeholder="__" style="letter-spacing:8px;">
+    <button class="btn-sm" onclick="checkP4()">解码</button>
+  </div>
+  <div class="solved" id="sv4">> 碎片解锁：<b>[ 17 ]</b><br>> 路由规则已校准：亮起的键位数字求和<br>> 目标矩阵命中：2 + 3 + 4 + 8 = <b>17</b></div>
+  <button class="btn-next" id="nx4" onclick="go('s-p2')">继续 →</button>
+</div>
+
+<!-- ========== P5: HBD — Archive patch recovery ========== -->
+<div class="screen" id="s-p5">
+  <div class="topbar">
+    <div class="dots"><div class="dot done"></div><div class="dot done"></div><div class="dot done"></div><div class="dot done"></div><div class="dot now"></div></div>
+    <div class="step-label">05 / 05</div>
+  </div>
+  <div class="tag">// 模块 05 / ARCHIVE</div>
+  <div class="desc">最后一层归档开始解封。<br>三条字段标签损坏得只剩下轮廓。<br>为每一行打上正确的 patch，让归档头恢复；到这里，你应该已经猜到这份档案的大致类别了。</div>
+
+  <div class="patch-panel" id="p5-panel">
+    <div class="cipher-table-title">archive repair</div>
+
+    <div class="patch-row" id="p5-row-0">
+      <div class="patch-label">_EADER</div>
+      <div class="patch-opts">
+        <button class="patch-btn" onclick="pickP5(0,'M',false,this)">M</button>
+        <button class="patch-btn" onclick="pickP5(0,'H',true,this)">H</button>
+        <button class="patch-btn" onclick="pickP5(0,'S',false,this)">S</button>
+      </div>
+    </div>
+
+    <div class="patch-row" id="p5-row-1">
+      <div class="patch-label">_IRTHDAY</div>
+      <div class="patch-opts">
+        <button class="patch-btn" onclick="pickP5(1,'G',false,this)">G</button>
+        <button class="patch-btn" onclick="pickP5(1,'B',true,this)">B</button>
+        <button class="patch-btn" onclick="pickP5(1,'W',false,this)">W</button>
+      </div>
+    </div>
+
+    <div class="patch-row" id="p5-row-2">
+      <div class="patch-label">_ATE</div>
+      <div class="patch-opts">
+        <button class="patch-btn" onclick="pickP5(2,'N',false,this)">N</button>
+        <button class="patch-btn" onclick="pickP5(2,'L',false,this)">L</button>
+        <button class="patch-btn" onclick="pickP5(2,'D',true,this)">D</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="hint-btn" onclick="showHint('h5')">需要提示？</button>
+  <div class="hint-text" id="h5">不是去算位置，而是去修补字段标签。三行补完后，首字母会拼出一个你已经猜得差不多的缩写。</div>
+
+  <div class="solved" id="sv5">> 碎片解锁：<b>[ HBD ]</b><br>> 归档字段已恢复：<b>HEADER / BIRTHDAY / DATE</b><br>> 系统抽取首字母：<b>H · B · D</b></div>
+  <button class="btn-next" id="nx5" onclick="go('s-code')">解锁密码 →</button>
+</div>
+
+<!-- ========== CODE ASSEMBLY ========== -->
+<div class="screen code-scr" id="s-code">
+  <div class="code-label">archive fragments ready</div>
+  <div class="frags" id="frags-display">
+    <div class="frag" data-v="X">??</div>
+    <div class="frag" data-v="T">??</div>
+    <div class="frag" data-v="04">??</div>
+    <div class="frag" data-v="17">??</div>
+    <div class="frag" data-v="HBD">??</div>
+  </div>
+  <div class="code-sub" id="code-sub">系统已经把答案露出了一部分</div>
+  <div class="assembled" id="assembled">HBD · XT · 04.17</div>
+  <button class="btn-big" id="btn-asm" onclick="assemble()">恢 复</button>
+</div>
+
+<!-- ========== FINAL ========== -->
+<div class="screen final" id="s-final">
+  <div class="final-icon">✦</div>
+  <div class="final-title">ARCHIVE RESTORED</div>
+  <div class="final-bday-cn">生日快乐</div>
+  <div class="final-bday-en">HAPPY BIRTHDAY</div>
+  <div class="final-msg" id="finalMsg"></div>
+  <div class="final-date">2 0 0 2 . 0 4 . 1 7</div>
+</div>
+
+<script>
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  // start alpha table timer for P1
+  if(id==='s-p1') setTimeout(()=>document.getElementById('alpha-table').classList.add('show'),45000);
+}
+
+function showHint(id){
+  document.getElementById(id).classList.add('show');
+}
+
+// P1: a+b-c=24→X
+function checkP1(){
+  const v=document.getElementById('p1-input').value.trim().toUpperCase();
+  if(v==='X'){
+    document.getElementById('p1-input').style.borderColor='var(--accent)';
+    document.getElementById('p1-input').disabled=true;
+    document.getElementById('sv1').classList.add('show');
+    document.getElementById('nx1').style.display='block';
+  } else {
+    flashWrong('p1-input');
+  }
+}
+
+// P2: terminal word recovery → T
+let p2Solved=false;
+function pickP2(letter,correct,el){
+  if(p2Solved) return;
+  if(correct){
+    p2Solved=true;
+    document.querySelectorAll('#p2-opts .term-btn').forEach(btn=>{
+      btn.classList.add('off');
+      btn.disabled=true;
+    });
+    el.classList.remove('off');
+    el.classList.add('correct');
+    document.getElementById('sv2').classList.add('show');
+    document.getElementById('nx2').style.display='block';
+  } else {
+    el.classList.add('wrong');
+    setTimeout(()=>el.classList.remove('wrong'),400);
+  }
+}
+
+// P3: node query → 04
+const p3Values={A:1,B:2,C:4,D:3};
+let p3Solved=false;
+
+function checkP3Nodes(){
+  if(p3Solved) return;
+  const ok=document.getElementById('p3-input').value.trim()==='04';
+  if(ok){
+    p3Solved=true;
+    document.getElementById('p3-input').disabled=true;
+    document.getElementById('p3-input').style.borderColor='var(--accent)';
+    document.getElementById('p3-panel').style.borderColor='var(--accent)';
+    document.getElementById('sv3').classList.add('show');
+    document.getElementById('nx3').style.display='block';
+  } else {
+    flashWrong('p3-input');
+    document.getElementById('p3-panel').style.borderColor='var(--danger)';
+    setTimeout(()=>document.getElementById('p3-panel').style.borderColor='var(--border)',500);
+  }
+}
+
+// P4: keypad sum → 17
+function checkP4(){
+  const v=document.getElementById('p4-input').value.trim();
+  if(v==='17'){
+    document.getElementById('p4-input').style.borderColor='var(--accent)';
+    document.getElementById('p4-input').disabled=true;
+    document.getElementById('sv4').classList.add('show');
+    document.getElementById('nx4').style.display='block';
+  } else {
+    flashWrong('p4-input');
+  }
+}
+
+// P5: archive patch recovery → HBD
+const p5SolvedRows=[false,false,false];
+let p5Done=false;
+
+function pickP5(rowIndex,letter,correct,el){
+  if(p5Done || p5SolvedRows[rowIndex]) return;
+  const row=document.getElementById('p5-row-'+rowIndex);
+  if(correct){
+    p5SolvedRows[rowIndex]=true;
+    row.querySelector('.patch-label').textContent=({
+      0:'HEADER',
+      1:'BIRTHDAY',
+      2:'DATE'
+    })[rowIndex];
+    row.querySelectorAll('.patch-btn').forEach(btn=>{
+      btn.classList.add('off');
+      btn.disabled=true;
+    });
+    el.classList.remove('off');
+    el.classList.add('correct');
+    checkP5Done();
+  } else {
+    el.classList.add('wrong');
+    setTimeout(()=>el.classList.remove('wrong'),400);
+  }
+}
+
+function checkP5Done(){
+  if(p5SolvedRows.every(Boolean)){
+    p5Done=true;
+    document.getElementById('sv5').classList.add('show');
+    document.getElementById('nx5').style.display='block';
+    document.getElementById('p5-panel').style.borderColor='var(--accent)';
+  }
+}
+
+function flashWrong(id){
+  const inp=document.getElementById(id);
+  inp.style.borderColor='var(--danger)';
+  setTimeout(()=>inp.style.borderColor='var(--border)',500);
+}
+
+// Assembly
+let asmDone=false;
+function assemble(){
+  const frags=document.querySelectorAll('.frag');
+  frags.forEach((f,i)=>{
+    setTimeout(()=>{f.textContent=f.dataset.v;f.classList.add('revealed')},i*260);
+  });
+  setTimeout(()=>{
+    go('s-final');
+    launchConfetti();
+    launchFireworks();
+  },frags.length*260+700);
+}
+
+function launchConfetti(){
+  const colors=['#00e87b','#ff3b5c','#ffaa2e','#4488ff','#ff44cc','#e0e0e0'];
+  for(let i=0;i<60;i++){
+    setTimeout(()=>{
+      const c=document.createElement('div');
+      c.className='confetti';
+      c.style.left=Math.random()*100+'vw';
+      c.style.background=colors[Math.floor(Math.random()*colors.length)];
+      const s=4+Math.random()*8;
+      c.style.width=s+'px';c.style.height=s+'px';
+      c.style.borderRadius=Math.random()>.5?'50%':'2px';
+      c.style.animationDuration=(2+Math.random()*3)+'s';
+      document.body.appendChild(c);
+      setTimeout(()=>c.remove(),5500);
+    },i*50);
+  }
+}
+
+function launchFireworks(){
+  const colors=['#00e87b','#00f5ff','#7a5cff','#ff44cc'];
+  for(let i=0;i<22;i++){
+    setTimeout(()=>{
+      const f=document.createElement('div');
+      f.className='firework';
+      f.style.left=(10+Math.random()*80)+'vw';
+      f.style.top=(8+Math.random()*52)+'vh';
+      f.style.color=colors[Math.floor(Math.random()*colors.length)];
+      f.style.transform='rotate('+(Math.random()*90)+'deg)';
+      document.body.appendChild(f);
+      setTimeout(()=>f.remove(),1800);
+    },i*120);
+  }
+}
+</script>
+
+</body>
+</html>
